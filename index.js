@@ -39,7 +39,6 @@ function Parser() {
 util.inherits(Parser, EventEmitter);
 
 Parser.prototype.handleLine = function handleLine(line) {
-
   var parsed = parseLine(line);
 
   // This will handle all the error stuff
@@ -135,7 +134,6 @@ Parser.prototype._handleError = function _handleError(line) {
   else if (this.writingErrorOutput) {
     var lastAssert = this.results.fail[this.results.fail.length - 1];
     var m = splitFirst(trim(line), (':'));
-
     // Rebuild raw error output
     this.lastAsserRawErrorString += line + '\n';
 
@@ -190,6 +188,8 @@ module.exports = function (done) {
     'test', 'assert', 'version', 'result', 'pass', 'fail', 'comment', 'plan'
   ]);
 
+  var lastLine = null;
+
   stream
     .pipe(split())
     .on('data', function (data) {
@@ -199,7 +199,14 @@ module.exports = function (done) {
       }
 
       var line = data.toString();
-      parser.handleLine(line);
+      if ( /\s\|\-$/.test( line ) ) {
+        lastLine = line;
+      } else {
+        parser.handleLine(
+          lastLine ? [ lastLine, line ].join( ' ' ).replace( /\s\s/g, '' ).replace( ' |-', '' ) : line
+        );
+        lastLine = null;
+      }
     })
     .on('close', function () {
       stream.emit('output', parser.results);
