@@ -30,6 +30,7 @@ function Parser() {
   this.testNumber = 0;
 
   this.previousLine = '';
+  this.previousTest = '';
   this.writingErrorOutput = false;
   this.writingErrorStackOutput = false;
   this.tmpErrorOutput = '';
@@ -70,12 +71,14 @@ Parser.prototype.handleLine = function handleLine(line) {
   // Handle tests
   if (parsed.type === 'test') {
     this.testNumber += 1;
+    this.previousTest = parsed.name;
     parsed.number = this.testNumber;
   }
 
   // Handle asserts
   if (parsed.type === 'assert') {
     parsed.test = this.testNumber;
+    parsed.testName = this.previousTest;
     this.results[parsed.ok ? 'pass' : 'fail'].push(parsed);
 
     if (parsed.ok) {
@@ -101,7 +104,6 @@ Parser.prototype.handleLine = function handleLine(line) {
 };
 
 Parser.prototype._handleError = function _handleError(line) {
-
   // Start of error output
   if (isErrorOutputStart(line)) {
     this.writingErrorOutput = true;
