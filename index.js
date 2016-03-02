@@ -30,6 +30,7 @@ function Parser() {
   this.testNumber = 0;
 
   this.previousLine = '';
+  this.previousMasterTest = '';
   this.previousTest = '';
   this.writingErrorOutput = false;
   this.writingErrorStackOutput = false;
@@ -71,6 +72,9 @@ Parser.prototype.handleLine = function handleLine(line) {
   if (parsed.type === 'test') {
     this.testNumber += 1;
     this.previousTest = parsed.name;
+    if ( parsed.name.indexOf( '·' ) !== 0 ) {
+      this.previousMasterTest = parsed.name;
+    }
     parsed.number = this.testNumber;
   }
 
@@ -78,6 +82,7 @@ Parser.prototype.handleLine = function handleLine(line) {
   if (parsed.type === 'assert') {
     parsed.test = this.testNumber;
     parsed.testName = this.previousTest;
+    parsed.masterTest = this.previousMasterTest;
     this.results[parsed.ok ? 'pass' : 'fail'].push(parsed);
 
     if (parsed.ok) {
